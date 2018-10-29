@@ -6,7 +6,8 @@ class Env(gym.Env):
 	metadata = {'render.modes': ['human']}
 
 	def __init__(self):
-		return true
+		self.seed()
+		self.reset()
 
 	def step(self, action):
 		raise NotImplementedError
@@ -15,4 +16,8 @@ class Env(gym.Env):
 		raise NotImplementedError
 
 	def render(self, mode='human', close=False):
-		raise NotImplementedError	
+		raise NotImplementedError
+
+	def seed(self, seed=None):
+		self.np_random, seed = seeding.np_random(seed)
+		return [seed]	
