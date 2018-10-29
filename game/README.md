@@ -1,3 +1,6 @@
-# Steps of using environment
-### `	import gym`
-	`	env = gym.make('shannon_switching-v0')`
+# Setups for setting up environment
+```  
+import gym
+import shannon_switching
+env = gym.make('shannon_switching-v0')
+```
