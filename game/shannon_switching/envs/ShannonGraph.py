@@ -3,6 +3,12 @@ import networkx as nx
 
 class ShanonGraph:
 
+    def __init__(self, filename, ishumancut):
+        self.graph = self.inputgraph(filename)
+        self.ishumancut = ishumancut
+        self.edges = self.graph.edges
+        self.inf = float("inf")
+
     @staticmethod
     def inputgraph(filename):
         with open(filename, 'r') as file:
@@ -13,12 +19,6 @@ class ShanonGraph:
                 [v1, v2] = [int(x) for x in lines[i + 1]]
                 graph.add_edge(v1, v2, short=float("inf"), cut=1)
         return graph
-
-    def __init__(self, filename, ishumancut):
-        self.graph = self.inputgraph(filename)
-        self.ishumancut = ishumancut
-        self.edges = self.graph.edges
-        self.inf = float("inf")
 
     # Move will be of form [v1, v2]
     def playhumanmove(self, humanmove):
