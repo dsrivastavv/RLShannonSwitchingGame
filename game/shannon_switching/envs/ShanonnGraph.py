@@ -25,27 +25,29 @@ def xorOp(spanningTree,e):
 def findPath(v1, v2, spanningTree):
 	l = nx.shortest_path(spanningTree,v1,v2)
 	path = []
-	for i in range(len(l))-1:
-		path.append([min(l[i], l[i+1]), max(l[i],l[i+1]), G[l[i]][l[i+1]]])
+	for i in range(len(l)-1):
+		path.append([min(l[i], l[i+1]), max(l[i],l[i+1]), spanningTree[l[i]][l[i+1]]['index']])
 	return path
 
-class ShanonGraph:
+class ShannonGraph:
 
-	def __init__(self, filename, ishumancut):
+	def __init__(self, filename, ishumancut, ishumanFirstPlayer):
 		self.graph = self.inputgraph(filename+'.txt')
 		self.ishumancut = ishumancut
-		self.edges = self.graph.edges
+		self.ishumanFirstPlayer = ishumanFirstPlayer
+		self.edges = self.graph.edges()
 		self.N = len(self.graph)
 		self.inf = float("inf")
 		self.spanningTree = readTree(filename+'_tree1.txt',filename+'_tree2.txt')
-		self.edge_map = [-1 for i in range(self.N*self.N)]
-		self.reverse_edge_map = [-1 for i in range(self.N*self.N)]
-		count = 0
-		for x in self.edges:
-			[v1,v2] = x
-			self.edge_map[v1*self.N+v2] = count
-			self.reverse_edge_map[count] = v1*self.N+v2
-			count += 1
+
+		# self.edge_map = [-1 for i in range(self.N*self.N)]
+		# self.reverse_edge_map = [-1 for i in range(self.N*self.N)]
+		# count = 0
+		# for x in self.edges:
+		# 	[v1,v2] = x
+		# 	self.edge_map[v1*self.N+v2] = count
+		# 	self.reverse_edge_map[count] = v1*self.N+v2
+		# 	count += 1
 
 	@staticmethod
 	def inputgraph(filename):
@@ -59,23 +61,23 @@ class ShanonGraph:
 		return graph
 
 	def updateTrees(self, humanMove, opponentMove, t1, t2):
-		if self.isHumanCut:
+		if self.ishumancut:
 			treeIndex=t1;
 		else:
 			treeIndex=t2;
 		self.spanningTree[treeIndex] = xorOp(self.spanningTree[treeIndex],humanMove)
 		self.spanningTree[treeIndex] = xorOp(self.spanningTree[treeIndex],opponentMove)
 
-	def getEdgeMap(self):
-		return [self.edge_map, self.reverse_edge_map]
+	# def getEdgeMap(self):
+	# 	return [self.edge_map, self.reverse_edge_map]
 
 	def getEdges(self):
 		return self.edges
 	#humanMove is (v1,v2,index)
 	def getComputerMove(self, humanMove):
-		[v1,v2,idx] = [humanMove]
-		b1 = [v1, v2] in self.spanningTree[1].edges() && idx == self.spanningTree[1][v1][v2]['index']
-		b1 = [v1, v2] in self.spanningTree[2].edges() && idx == self.spanningTree[2][v1][v2]['index']
+		[v1,v2,idx] = humanMove
+		b1 = [v1, v2] in self.spanningTree[1].edges() and idx == self.spanningTree[1][v1][v2]['index']
+		b2 = [v1, v2] in self.spanningTree[2].edges() and idx == self.spanningTree[2][v1][v2]['index']
 		if b1==b2:
 			return [-1,-1,-1]
 		t1=1
@@ -83,9 +85,9 @@ class ShanonGraph:
 		if b2:
 			t1=2
 			t2=1
-		s1 = findPath(v1,v2,spanningTree[t2])
+		s1 = findPath(v1,v2,self.spanningTree[t2])
 		for x in s1:
-			s2 = findPath(x[0],x[1],spanningTree[t1])
+			s2 = findPath(x[0],x[1],self.spanningTree[t1])
 			if humanMove in s2:
 				computerMove = x
 				break
@@ -93,7 +95,7 @@ class ShanonGraph:
 		return computerMove
 
 	# Move will be of form [v1, v2]
-	def playhumanMove(self, humanMove):
+	def playHumanMove(self, humanMove):
 		if self.graph[humanMove[0]][humanMove[1]]['cut'] == 1 and self.graph[humanMove[0]][humanMove[1]]['short'] == self.inf:
 			if self.ishumancut:
 				self.graph[humanMove[0]][humanMove[1]]['cut'] = self.inf
@@ -104,7 +106,7 @@ class ShanonGraph:
 			return 0
 
 	# Move will be of form [v1, v2] or pass [-1,-1]
-	def playcomputermove(self, opponentMove):
+	def playComputerMove(self, opponentMove):
 		if opponentMove == [-1,-1]:
 			return 0
 		if self.graph[opponentMove[0]][opponentMove[1]]['cut'] == 1 and self.graph[opponentMove[0]][opponentMove[1]]['short'] == self.inf:
@@ -116,6 +118,9 @@ class ShanonGraph:
 		else:
 			return 0
 
+	def isPlayableEdge(self, edge):
+		return self.graph[edge[0]][edge[1]]['cut'] == 1 and self.graph[edge[0]][edge[1]]['short'] == self.inf
+
 	def reset(self):
 		for e in self.graph.edges():
 			self.graph[e[0]][e[1]]['short'] = self.inf
@@ -125,7 +130,12 @@ class ShanonGraph:
 	def hasshortwon(self):
 		# find if path exists between source and sink colored by short
 		# If path exists it's length is infinity
-		path_length = nx.shortest_path_length(self.graph, 1, self.graph.number_of_nodes(), 'short')
+		# try:
+		# 	path_length = nx.shortest_path_length(self.graph, 0, self.graph.number_of_nodes()-1, 'short')
+		# 	return True
+		# except nx.NetworkXNoPath:
+		# 	return False
+		path_length = nx.shortest_path_length(self.graph, 0, self.graph.number_of_nodes()-1, 'short')
 		if path_length == self.inf:
 			return False
 		else:
@@ -134,7 +144,12 @@ class ShanonGraph:
 	def hascutwon(self):
 		# find if path exists between source and sink cut by cut
 		# If path exists it's length is infinity
-		path_length = nx.shortest_path_length(self.graph, 1, self.graph.number_of_nodes(), 'cut')
+		# try:
+		# 	path_length = nx.shortest_path_length(self.graph, 0, self.graph.number_of_nodes()-1, 'cut')
+		# 	return False
+		# except nx.NetworkXNoPath:
+		# 	return True
+		path_length = nx.shortest_path_length(self.graph, 0, self.graph.number_of_nodes()-1, 'cut')
 		if path_length == self.inf:
 			return True
 		else:
