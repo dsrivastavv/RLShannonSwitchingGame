@@ -1,7 +1,7 @@
 # import gym
 # from gym import error, spaces, utils
 # from gym.utils import seeding
-from ShanonGraph import ShanonGraph
+from ShanonnGraph import ShanonGraph
 import Queue
 graph_file = 'graph.txt'
 
@@ -22,25 +22,21 @@ class Env(gym.Env):
 	metadata = {'render.modes': ['human']}
 
 	def __init__(self):
+		self.numEdges = len(GameGraph.getEdges())
+		self.N = GameGraph.N
+		self.action_space = spaces.Discrete(numEdges)
+        self.observation_space = spaces.MultiDiscrete([3 for i in range(numEdges)])
+        [self.edge_map, self.reverse_edge_map] = GameGraph.getEdgeMap()
 		self.seed()
 		self.reset()
-
-	#action is edge [v1,v2]
+	#action is a number 
 	def step(self, action):
-		GameGraph.playHumanMove(action)
-		x = isGameOver()
-		if not x==0:
-			return [GameGraph.getState(), x, 1, {}]
-		else:
-			opponentMove = GameGraph.getComputerMove(action) #call updateTree inside this function
-			GameGraph.playOpponentMove(opponentMove)
-			y = isGameOver()
-			if not y==0:
-				return [GameGraph.getState(), y, 1, {}]
-			else:
-				return [GameGraph.getState(), 0, 0, {}] 
+		v1 = action/N
+		v2 = action%N
+		
 
 	def reset(self):
+		self.observation = [0 for i in range(self.numEdges)]
 		GameGraph.reset()
 
 	def render(self, mode='human', close=False):

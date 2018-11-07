@@ -35,8 +35,17 @@ class ShanonGraph:
 		self.graph = self.inputgraph(filename+'.txt')
 		self.ishumancut = ishumancut
 		self.edges = self.graph.edges
+		self.N = len(self.graph)
 		self.inf = float("inf")
 		self.spanningTree = readTree(filename+'_tree1.txt',filename+'_tree2.txt')
+		self.edge_map = [-1 for i in range(self.N*self.N)]
+		self.reverse_edge_map = [-1 for i in range(self.N*self.N)]
+		count = 0
+		for x in self.edges:
+			[v1,v2] = x
+			self.edge_map[v1*self.N+v2] = count
+			self.reverse_edge_map[count] = v1*self.N+v2
+			count += 1
 
 	@staticmethod
 	def inputgraph(filename):
@@ -57,6 +66,11 @@ class ShanonGraph:
 		self.spanningTree[treeIndex] = xorOp(self.spanningTree[treeIndex],humanMove)
 		self.spanningTree[treeIndex] = xorOp(self.spanningTree[treeIndex],opponentMove)
 
+	def getEdgeMap(self):
+		return [self.edge_map, self.reverse_edge_map]
+
+	def getEdges(self):
+		return self.edges
 	#humanMove is (v1,v2,index)
 	def getComputerMove(self, humanMove):
 		[v1,v2,idx] = [humanMove]
