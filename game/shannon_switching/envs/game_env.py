@@ -1,12 +1,10 @@
-import networkx as nx
+# import gym
+# from gym import error, spaces, utils
+# from gym.utils import seeding
+from ShanonGraph import ShanonGraph
+import Queue
+graph_file = 'graph.txt'
 
-
-
-def inputTree(fileName):
-	with open(fileName, 'r') as f:
-		lines = [line.rsplit() for line in f]
-		numLines = len(lines)
-		for i in 
 
 def initialize_game_state(graph):
 	N = len(graph[0])
@@ -17,16 +15,7 @@ def initialize_game_state(graph):
 				state[i*N+j] = [0 1 0 0]
 	return state
 
-def xorOp(spanningTree, e):
-	if e in spanningTree:
-		spanningTree.remove(e)
-	else:
-		spanningTree.append(e)
-	return spanningTree
-
-
-
-GameGraph = ShanonGraph(0)
+GameGraph = ShanonGraph('graph',0)
 
 #state is a configuration of the graph 
 class Env(gym.Env):
