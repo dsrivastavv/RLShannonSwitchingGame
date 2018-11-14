@@ -1,11 +1,13 @@
 import networkx as nx
+import pkg_resources
 
 
 def readTree(f1, f2):
     files = [f1, f2]
     spanningTree = [None]
     for l in range(2):
-        with open(files[l], "r") as file:
+        filename = pkg_resources.resource_filename(__name__, files[l])
+        with open(filename, "r") as file:
             lines = [line.rsplit() for line in file]
             numedges = int(lines[0][0])
             graph = nx.Graph()
@@ -46,6 +48,7 @@ class ShannonGraph:
 
     @staticmethod
     def inputgraph(filename):
+        filename = pkg_resources.resource_filename(__name__, filename)
         with open(filename, 'r') as file:
             lines = [line.rsplit() for line in file]
             numedges = int(lines[0][0])

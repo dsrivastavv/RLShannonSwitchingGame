@@ -1,7 +1,7 @@
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
-from ShannonGraph import ShannonGraph
+from .ShannonGraph import ShannonGraph
 
 graph_file = 'graph.txt'
 
