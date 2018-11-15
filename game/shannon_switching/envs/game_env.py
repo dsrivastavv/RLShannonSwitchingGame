@@ -1,11 +1,12 @@
 import gym
+import numpy as np
 from gym import error, spaces, utils
 from gym.utils import seeding
 from .ShannonGraph import ShannonGraph
 
 graph_file = 'graph.txt'
 
-
+# 0: Unplayed edge, 1:colored, 2:cut 
 class Env(gym.Env):
     metadata = {'render.modes': ['human']}
 
@@ -29,6 +30,7 @@ class Env(gym.Env):
         humanMove = self.actionEdgeMap[action]
         if not self.gameGraph.isPlayableEdge(humanMove):
             return [self.observation, 0, 0, None]
+        print('Human Move', humanMove)
         self.gameGraph.playHumanMove(humanMove)
         idx = self.edgeActionMap[(humanMove[0], humanMove[1])]
         self.observation[idx] = 1
@@ -37,7 +39,7 @@ class Env(gym.Env):
             return [self.observation, over, 1, None]
         humanMove = [humanMove[0], humanMove[1], humanMove[0] * self.N + humanMove[1]]
         computerMove = self.gameGraph.getComputerMove(humanMove)
-        print(computerMove)
+        print('Computer Move', computerMove)
         if computerMove[0] != -1:
             self.gameGraph.playComputerMove(computerMove)
             idx = self.edgeActionMap[(computerMove[0], computerMove[1])]
@@ -49,7 +51,8 @@ class Env(gym.Env):
             return [self.observation, over, 1, None]
 
     def reset(self):
-        self.observation = [0 for __ in range(self.numActions)]
+        print(self.actionEdgeMap)
+        self.observation = np.zeros(self.numActions)
         self.gameGraph.reset()
         if not self.ishumanFirstPlayer:
             computerMove = self.gameGraph.getComputerMove([0, self.N - 1, self.N * self.N])
@@ -57,6 +60,8 @@ class Env(gym.Env):
                 self.gameGraph.playComputerMove(computerMove)
                 idx = self.edgeActionMap[(computerMove[0], computerMove[1])]
                 self.observation[idx] = 2
+        print('Start state', self.observation)
+        return self.observation
 
     def render(self, mode='human', close=False):
         raise NotImplementedError
