@@ -11,7 +11,7 @@ class Env(gym.Env):
     metadata = {'render.modes': ['human']}
 
     def __init__(self):
-        self.ishumanFirstPlayer = 0
+        self.ishumanFirstPlayer = 1
         self.ishumanCut = 1
         self.gameGraph = ShannonGraph('graph', self.ishumanCut, self.ishumanFirstPlayer)
         self.numActions = len(self.gameGraph.getEdges())
