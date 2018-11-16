@@ -36,9 +36,11 @@ class Env(gym.Env):
         self.observation[idx] = 1
         over = self.gameGraph.isgameover()
         if over == 1:
-            return [self.observation, over, 1, None]
+            print('human won')
+            return [self.observation, 1000, 1, None]
         humanMove = [humanMove[0], humanMove[1], humanMove[0] * self.N + humanMove[1]]
-        computerMove = self.gameGraph.getComputerMove(humanMove)
+        #computerMove = self.gameGraph.getComputerMove(humanMove)
+        computerMove = self.gameGraph.getNewComputerMove()
         print('Computer Move', computerMove)
         if computerMove[0] != -1:
             self.gameGraph.playComputerMove(computerMove)
@@ -48,7 +50,11 @@ class Env(gym.Env):
         if over == 0:
             return [self.observation, 0, 0, None]
         else:
-            return [self.observation, over, 1, None]
+            if over == 1:
+                print('human won')
+            else:
+                print('computer won')
+            return [self.observation, over*1000, 1, None]
 
     def reset(self):
         print(self.actionEdgeMap)

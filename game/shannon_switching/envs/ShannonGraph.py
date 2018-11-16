@@ -1,5 +1,6 @@
 import networkx as nx
 import pkg_resources
+import random
 
 
 def readTree(f1, f2):
@@ -92,6 +93,85 @@ class ShannonGraph:
 				break
 		self.updateTrees(humanMove, computerMove, t1, t2)
 		return computerMove
+
+	def unplayMove(self,edge):
+		self.graph[edge[0]][edge[1]]['cut'] = 1
+		self.graph[edge[0]][edge[1]]['short'] = self.inf
+
+	def hasHumanWon(self):
+		if self.ishumancut:
+			return self.hascutwon()
+		else:
+			return self.hasshortwon()
+
+	def hasComputerWon(self):
+		if self.ishumancut:
+			return self.hasshortwon()
+		else:
+			return self.hascutwon()
+
+	def bruteForce(self,player,depth):
+		result = -1
+		bestEdge = None
+		for e in self.graph.edges():
+			if not self.isPlayableEdge(e):
+				continue
+			if player=='human':
+				self.playHumanMove(e)
+				if self.hasHumanWon():
+					result = 1
+					bestEdge = e
+				elif depth == 0:
+					if result == -1:
+						result = 0
+						bestEdge = e
+				else:
+					(opponentResult,opponentMove) = self.bruteForce('computer',depth-1)
+					if opponentResult == -1:
+						result = 1
+						bestEdge = e
+					elif opponentResult == 0:
+						if result == -1:
+							result = 0
+							bestEdge = e
+			else:
+				self.playComputerMove(e)
+				if self.hasComputerWon():
+					result = 1
+					bestEdge = e
+				elif depth == 0:
+					if result == -1:
+						result = 0
+						bestEdge = e
+				else:
+					(opponentResult,opponentMove) = self.bruteForce('human',depth-1)
+					if opponentResult == -1:
+						result = 1
+						bestEdge = e
+					elif opponentResult == 0:
+						if result == -1:
+							result = 0
+							bestEdge = e
+			self.unplayMove(e)
+			if result == 1:
+				break
+		return (result,bestEdge)
+
+	def getRandomPlayableEdge(self):
+		playableEdges = []
+		for e in self.graph.edges():
+			if self.isPlayableEdge(e):
+				playableEdges.append(e)
+		return playableEdges[random.randint(0,len(playableEdges)-1)]	
+
+	def getNewComputerMove(self):
+		return self.getRandomPlayableEdge()
+		depth = 10
+		(result,bestEdge) = self.bruteForce('computer',depth)
+		if result == -1:
+			return self.getRandomPlayableEdge()
+		else:
+			return bestEdge
 
 	# Move will be of form [v1, v2]
 	def playHumanMove(self, humanMove):
