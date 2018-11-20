@@ -1,7 +1,7 @@
 import networkx as nx
 import pkg_resources
 import random
-
+import numpy as np
 
 def readTree(f1, f2):
 	files = [f1, f2]
@@ -157,6 +157,81 @@ class ShannonGraph:
 				break
 		return (result,bestEdge)
 
+	#for Computer
+	def evaluationFunction(self,player):
+		return 0
+		# if self.hasComputerWon():
+		# 	return 100
+		# elif self.hasHumanWon():
+		# 	return -1
+		# else:
+		# 	heuristic			
+
+	def minimax(self,player,depth,epsilon,alpha,beta):
+		legalActions = [e for e in self.graph.edges() if self.isPlayableEdge(e)]
+		#print(legalActions)
+		if depth == 0:
+			print("called")
+			value = self.evaluationFunction(player)
+			#leaf-node
+		else: 
+			if np.random.uniform(0.0,1.0)<epsilon:
+				legalActions = [legalActions[random.randint(0,len(legalActions)-1)]]
+			if player=='human':
+				bestVal = float('inf')
+				bestEdge = None
+				for action in legalActions:
+					self.playHumanMove(action)
+					if self.hasHumanWon():
+						bestVal = -1
+						bestEdge = action
+						self.unplayMove(action)
+						break
+					else:
+						[oppValue, oppEdge] = self.minimax('computer',depth-1,epsilon,alpha,beta)
+						value = 1+ oppValue
+						if value < bestVal:
+							bestVal = value
+							bestEdge = action
+						# if bestVal<=alpha:
+						# 	self.unplayMove(action)
+						# 	break
+						beta = min(beta,bestVal)
+					self.unplayMove(action)
+				return [bestVal,bestEdge]
+			else:
+				bestVal = float('-inf')
+				bestEdge = None
+				for action in legalActions:
+					self.playComputerMove(action)
+					if self.hasComputerWon():
+						bestVal = 1000
+						bestEdge = action
+						#print(legalActions)
+						self.unplayMove(action)
+						break
+					else:
+						[oppValue, oppEdge] = self.minimax('human',depth-1,epsilon,alpha,beta)
+						value = 1+ oppValue
+						if value > bestVal:
+							bestVal = value
+							bestEdge = action
+						# if bestVal>=beta:
+						# 	self.unplayMove(action)
+						# 	break
+						alpha = max(alpha,bestVal)
+					self.unplayMove(action)
+				return [bestVal,bestEdge]
+
+	def getSelfPlayMove(self,models,gameState,actionEdgeMap):
+		l = len(models)
+		if l == 0:
+			return self.getRandomPlayableEdge()
+		r = random.randint(0,l-1)
+		action = models[r].step(gameState)[0][0]
+		return actionEdgeMap[action]
+
+
 	def getRandomPlayableEdge(self):
 		playableEdges = []
 		for e in self.graph.edges():
@@ -164,14 +239,16 @@ class ShannonGraph:
 				playableEdges.append(e)
 		return playableEdges[random.randint(0,len(playableEdges)-1)]	
 
-	def getNewComputerMove(self):
-		return self.getRandomPlayableEdge()
-		depth = 10
-		(result,bestEdge) = self.bruteForce('computer',depth)
-		if result == -1:
-			return self.getRandomPlayableEdge()
-		else:
-			return bestEdge
+	def getNewComputerMove(self,epsilon):
+		[bestVal,bestEdge] = self.minimax('computer',10000,epsilon,float('-inf'),float('inf'))
+		return bestEdge
+		# return self.getRandomPlayableEdge()
+		# depth = 10
+		# (result,bestEdge) = self.bruteForce('computer',depth)
+		# if result == -1:
+		# 	return self.getRandomPlayableEdge()
+		# else:
+		# 	return bestEdge
 
 	# Move will be of form [v1, v2]
 	def playHumanMove(self, humanMove):
