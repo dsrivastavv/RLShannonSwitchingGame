@@ -167,7 +167,7 @@ class ShannonGraph:
 		# else:
 		# 	heuristic			
 
-	def minimax(self,player,depth,epsilon,alpha,beta):
+	def minimax(self, player, depth, epsilon, alpha, beta):
 		legalActions = [e for e in self.graph.edges() if self.isPlayableEdge(e)]
 		#print(legalActions)
 		if depth == 0:
@@ -239,8 +239,8 @@ class ShannonGraph:
 				playableEdges.append(e)
 		return playableEdges[random.randint(0,len(playableEdges)-1)]	
 
-	def getNewComputerMove(self,epsilon):
-		[bestVal,bestEdge] = self.minimax('computer',10000,epsilon,float('-inf'),float('inf'))
+	def getMinMaxComputerMove(self,epsilon):
+		[bestVal, bestEdge] = self.minimax('computer',10000, epsilon, float('-inf'), float('inf'))
 		return bestEdge
 		# return self.getRandomPlayableEdge()
 		# depth = 10

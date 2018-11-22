@@ -20,15 +20,15 @@ def main():
 	print('trainPlayer:',trainPlayer)
 	if trainPlayer=='cut':
 		register(
-	    id='shannon_switching-v0',
-	    entry_point='shannon_switching.envs:Env',
-	    kwargs={'ishumanFirstPlayer':1,'ishumanCut':1,'iterNo':iterNo}
+		id='shannon_switching-v0',
+		entry_point='shannon_switching.envs:Env',
+		kwargs={'ishumanFirstPlayer':1, 'ishumanCut':1, 'iterNo':iterNo}
 		)
 	elif trainPlayer=='connect':
 		register(
-	    id='shannon_switching-v0',
-	    entry_point='shannon_switching.envs:Env',
-	    kwargs={'ishumanFirstPlayer':1,'ishumanCut':0,'iterNo':iterNo}
+		id='shannon_switching-v0',
+		entry_point='shannon_switching.envs:Env',
+		kwargs={'ishumanFirstPlayer':1, 'ishumanCut':0, 'iterNo':iterNo}
 		)
 	env = gym.make('shannon_switching-v0')
 	act = deepq.learn(
