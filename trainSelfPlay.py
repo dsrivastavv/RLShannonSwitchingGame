@@ -30,7 +30,7 @@ def main():
 		env,
 		network=models.mlp(num_hidden=40, num_layers=10),
 		lr=5e-4,
-		total_timesteps=50,
+		total_timesteps=50000,
 		buffer_size=5000,
 		exploration_fraction=0.1,
 		exploration_final_eps=0.02,
