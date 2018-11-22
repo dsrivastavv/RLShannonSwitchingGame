@@ -28,7 +28,7 @@ def main():
 	# train network
 	act = deepq.learn(
 		env,
-		network=models.mlp(num_hidden=40, num_layers=10),
+		network=models.mlp(num_hidden=10, num_layers=3),
 		lr=5e-4,
 		total_timesteps=50000,
 		buffer_size=5000,
@@ -37,6 +37,7 @@ def main():
 		print_freq=1,
 		param_noise=False,
 		prioritized_replay=True,
+		load_path='model/selfPlay/shannon_switching_{}_{}_{}.pkl'.format(ishumanFirstPlayer, ishumanCut, iterNo-1) if iterNo > 0 else None		
 	)
 	print("Saving model to model/selfPlay/shannon_switching_{}_{}_{}.pkl".format(ishumanFirstPlayer, ishumanCut, iterNo))
 	act.save("model/selfPlay/shannon_switching_{}_{}_{}.pkl".format(ishumanFirstPlayer, ishumanCut, iterNo))

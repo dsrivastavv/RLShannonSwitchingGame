@@ -90,9 +90,13 @@ class ShannonGraph:
 			s2 = findPath(x[0], x[1], self.spanningTree[t1])
 			if humanMove in s2:
 				computerMove = x
-				break
-		self.updateTrees(humanMove, computerMove, t1, t2)
-		return computerMove
+				if self.existsEdge([computerMove[0],computerMove[1]]):
+					break
+		if self.existsEdge([computerMove[0],computerMove[1]]):
+			self.updateTrees(humanMove, computerMove, t1, t2)
+			return computerMove
+		else:
+			return [-1, -1, -1]
 
 	def unplayMove(self,edge):
 		self.graph[edge[0]][edge[1]]['cut'] = 1
@@ -267,6 +271,10 @@ class ShannonGraph:
 			else:
 				self.graph[opponentMove[0]][opponentMove[1]]['cut'] = self.inf
 			return 10
+
+
+	def existsEdge(self, edge):
+		return edge in self.graph.edges()
 
 	def isPlayableEdge(self, edge):
 		return self.graph[edge[0]][edge[1]]['cut'] == 1 and self.graph[edge[0]][edge[1]]['short'] == self.inf

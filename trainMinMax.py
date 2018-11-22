@@ -12,8 +12,6 @@ def callback(lcl, _glb):
 	return False
 	
 def main():
-
-	# setup environment
 	ishumanFirstPlayer = int(sys.argv[1])
 	ishumanCut = int(sys.argv[2])
 	iterNo = int(sys.argv[3])
@@ -24,14 +22,11 @@ def main():
 	print("ishumanFirstPlayer ", ishumanFirstPlayer)
 	print("ishumanCut", ishumanCut)
 	print("iterNo", iterNo)
-	# input("Press Enter to continue...")
-
-	# train network
 	act = deepq.learn(
 		env,
-		network=models.mlp(num_hidden=20, num_layers=5),
+		network=models.mlp(num_hidden=20, num_layers=3),
 		lr=5e-4,
-		total_timesteps=50000,
+		total_timesteps=50,
 		buffer_size=5000,
 		exploration_fraction=0.1,
 		exploration_final_eps=0.02,
@@ -40,6 +35,7 @@ def main():
 		prioritized_replay=True,
 		load_path='model/minMax/shannon_switching_{}_{}_{}.pkl'.format(ishumanFirstPlayer, ishumanCut, iterNo-1) if iterNo > 0 else None
 	)
+	return act
 	print("Saving model to model/minMax/shannon_switching_{}_{}_{}.pkl".format(ishumanFirstPlayer, ishumanCut, iterNo))
 	act.save("model/minMax/shannon_switching_{}_{}_{}.pkl".format(ishumanFirstPlayer, ishumanCut, iterNo))
 	act.save_act("model/minMax/shannon_switching_train_{}_{}_{}.pkl".format(ishumanFirstPlayer, ishumanCut, iterNo))

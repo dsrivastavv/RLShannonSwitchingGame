@@ -4,7 +4,7 @@ from gym import error, spaces, utils
 from baselines import deepq
 from gym.utils import seeding
 from .ShannonGraph import ShannonGraph
-
+import random
 graphFilePrefix = 'graph'
 
 class Env(gym.Env):
@@ -30,21 +30,25 @@ class Env(gym.Env):
 		print("Environment variables set up")
 
 	def setupSelfPlay(self):
+		r = random.randint(0,self.iterNo-1)
 		if self.ishumanFirstPlayer and self.ishumanCut:
-			self.model = deepq.load_act("model/selfPlay/shannon_switching_train_{}_{}_{}.pkl".format(0, 0, self.iterNo-1))
+			self.model = deepq.load_act("model/selfPlay/shannon_switching_train_{}_{}_{}.pkl".format(0, 0, r))
 		elif self.ishumanFirstPlayer and not self.ishumanCut:
-			self.model = deepq.load_act("model/selfPlay/shannon_switching_train_{}_{}_{}.pkl".format(0, 1, self.iterNo-1))
+			self.model = deepq.load_act("model/selfPlay/shannon_switching_train_{}_{}_{}.pkl".format(0, 1, r))
 		elif not self.ishumanFirstPlayer and self.ishumanCut:
-			self.model = deepq.load_act("model/selfPlay/shannon_switching_train_{}_{}_{}.pkl".format(1, 0, self.iterNo-1))
+			self.model = deepq.load_act("model/selfPlay/shannon_switching_train_{}_{}_{}.pkl".format(1, 0, r))
 		else:
-			self.model = deepq.load_act("model/selfPlay/shannon_switching_train_{}_{}_{}.pkl".format(1, 1, self.iterNo-1))
+			self.model = deepq.load_act("model/selfPlay/shannon_switching_train_{}_{}_{}.pkl".format(1, 1, r))
 		print("Self play set up")
 
-	def setupMinMax(self):
-		self.epsilon = max(0, 1 - self.iterNo*0.05)
+	def setupMinMax(self,epsilon):
+		if epsilon==0.0:
+			self.epsilon = max(0, 1 - self.iterNo*0.05)
+		else:
+			self.epsilon = epsilon	
 		print("Min max set up with epsilon", self.epsilon)
 
-	def configureEnvironment(self, computerType="random", ishumanFirstPlayer=1, ishumanCut=1, iterNo=0):
+	def configureEnvironment(self, computerType="random", ishumanFirstPlayer=1, ishumanCut=1, iterNo=0, epsilon=0.0):
 		self.computerType = computerType
 		self.ishumanFirstPlayer = ishumanFirstPlayer
 		self.ishumanCut = ishumanCut
@@ -57,7 +61,7 @@ class Env(gym.Env):
 			else:
 				self.setupSelfPlay()
 		elif self.computerType == "minMax":
-			self.setupMinMax()
+			self.setupMinMax(epsilon)
 		self.seed()
 		self.reset()
 
@@ -67,9 +71,11 @@ class Env(gym.Env):
 		idx = self.edgeActionMap[(humanMove[0], humanMove[1])]
 		if self.ishumanCut:
 			self.observation[idx] = 1
+			print('Human Cut Move', humanMove)
 		else:
 			self.observation[idx] = 2
-		print('Human Move', humanMove)
+			print('Human Connect Move', humanMove)
+
 
 	def playComputerMove(self, humanMove):
 		if self.computerType == "optimalComputer":
@@ -77,12 +83,18 @@ class Env(gym.Env):
 			computerMove = self.gameGraph.getComputerMove(humanMoveSpanningTree)
 		elif self.computerType == "selfPlay":
 			computerMove = self.actionEdgeMap[self.model.step(self.observation)[0][0]]
+			if not self.gameGraph.isPlayableEdge(computerMove):
+				computerMove = self.gameGraph.getRandomPlayableEdge()
+				print('Model gives invalid move')
 		elif self.computerType == "minMax":
 			computerMove = self.gameGraph.getMinMaxComputerMove(self.epsilon)
 		elif self.computerType == "random":
 			computerMove = self.gameGraph.getRandomPlayableEdge()
 
-		print('Computer Move', computerMove)
+		if self.ishumanCut:
+			print('Computer Connect Move', computerMove)
+		else:
+			print('Computer Cut Move', computerMove)
 
 		if computerMove[0] != -1:
 			self.gameGraph.playComputerMove(computerMove)
@@ -91,6 +103,7 @@ class Env(gym.Env):
 				self.observation[idx] = 2
 			else:
 				self.observation[idx] = 1
+			print(self.observation)
 		
 	def isGameOver(self):
 		over = self.gameGraph.isgameover()
@@ -106,7 +119,7 @@ class Env(gym.Env):
 	def step(self, action):
 		humanMove = self.actionEdgeMap[action]	# human Move
 		if not self.gameGraph.isPlayableEdge(humanMove):
-			return [self.observation, 0, 0, None]
+			return [self.observation, -1, 0, None]
 		else:
 			self.playHumanMove(humanMove)
 			if self.gameGraph.isgameover() == 0:
@@ -116,6 +129,7 @@ class Env(gym.Env):
 	def reset(self):
 		self.observation = np.zeros(self.numActions)
 		self.gameGraph.reset()
+		print('Start state', self.observation)
 		if not self.ishumanFirstPlayer:
 			if self.computerType == "optimalComputer":
 				humanMoveSpanningTree = [0, self.N - 1, self.N * self.N]
@@ -129,7 +143,6 @@ class Env(gym.Env):
 						self.observation[idx] = 1
 			else:
 				self.playComputerMove([-1, -1])
-		print('Start state', self.observation)
 		return self.observation
 
 	def render(self, mode='human', close=False):

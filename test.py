@@ -19,7 +19,7 @@ def main():
 	fileName = sys.argv[4]
 	env = gym.make('shannon_switching-v0')
 	env.configureEnvironment(computerType=computerType, ishumanFirstPlayer=ishumanFirstPlayer, 
-		ishumanCut=ishumanCut, iterNo=20)
+		ishumanCut=ishumanCut, iterNo=20, epsilon=0.2)
 	print("ishumanFirstPlayer ", ishumanFirstPlayer)
 	print("ishumanCut", ishumanCut)
 	model = deepq.load_act(fileName)
@@ -30,7 +30,7 @@ def main():
 		state = env.reset()
 		while True:
 			state, reward, isOver, __ = env.step(model.step(state)[0][0])
-			if reward!=0:
+			if isOver!=0:
 				break
 		if reward == 1000:
 			totalWins += 1

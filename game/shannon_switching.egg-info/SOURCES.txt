@@ -1,0 +1,7 @@
+README.md
+setup.py
+shannon_switching.egg-info/PKG-INFO
+shannon_switching.egg-info/SOURCES.txt
+shannon_switching.egg-info/dependency_links.txt
+shannon_switching.egg-info/requires.txt
+shannon_switching.egg-info/top_level.txt
