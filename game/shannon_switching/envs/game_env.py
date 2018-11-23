@@ -30,7 +30,8 @@ class Env(gym.Env):
 		print("Environment variables set up")
 
 	def setupSelfPlay(self):
-		r = random.randint(0,self.iterNo-1)
+		#r = random.randint(0,self.iterNo-1)
+		r = self.iterNo-1
 		if self.ishumanFirstPlayer and self.ishumanCut:
 			self.model = deepq.load_act("model/selfPlay/shannon_switching_train_{}_{}_{}.pkl".format(0, 0, r))
 		elif self.ishumanFirstPlayer and not self.ishumanCut:
@@ -40,6 +41,20 @@ class Env(gym.Env):
 		else:
 			self.model = deepq.load_act("model/selfPlay/shannon_switching_train_{}_{}_{}.pkl".format(1, 1, r))
 		print("Self play set up")
+
+	def setupSelfPlayZero(self):
+		#r = random.randint(0,self.iterNo-1)
+		r = self.iterNo-1
+		if self.ishumanFirstPlayer and self.ishumanCut:
+			self.model = deepq.load_act("model/selfPlayZero/shannon_switching_train_{}_{}_{}.pkl".format(1, 1, r))
+		elif self.ishumanFirstPlayer and not self.ishumanCut:
+			self.model = deepq.load_act("model/selfPlayZero/shannon_switching_train_{}_{}_{}.pkl".format(1, 0, r))
+		elif not self.ishumanFirstPlayer and self.ishumanCut:
+			self.model = deepq.load_act("model/selfPlayZero/shannon_switching_train_{}_{}_{}.pkl".format(0, 1, r))
+		else:
+			self.model = deepq.load_act("model/selfPlayZero/shannon_switching_train_{}_{}_{}.pkl".format(0, 0, r))
+		print("Self play Zero set up")
+
 
 	def setupMinMax(self,epsilon):
 		if epsilon==0.0:
@@ -60,6 +75,11 @@ class Env(gym.Env):
 				self.computerType = "random"
 			else:
 				self.setupSelfPlay()
+		elif self.computerType == "selfPlayZero":
+			if iterNo == 0:
+				self.computerType = "random"
+			else:
+				self.setupSelfPlayZero()
 		elif self.computerType == "minMax":
 			self.setupMinMax(epsilon)
 		self.seed()
@@ -82,6 +102,11 @@ class Env(gym.Env):
 			humanMoveSpanningTree = [humanMove[0], humanMove[1], humanMove[0] * self.N + humanMove[1]]
 			computerMove = self.gameGraph.getComputerMove(humanMoveSpanningTree)
 		elif self.computerType == "selfPlay":
+			computerMove = self.actionEdgeMap[self.model.step(self.observation)[0][0]]
+			if not self.gameGraph.isPlayableEdge(computerMove):
+				computerMove = self.gameGraph.getRandomPlayableEdge()
+				print('Model gives invalid move')
+		elif self.computerType == "selfPlayZero":
 			computerMove = self.actionEdgeMap[self.model.step(self.observation)[0][0]]
 			if not self.gameGraph.isPlayableEdge(computerMove):
 				computerMove = self.gameGraph.getRandomPlayableEdge()
@@ -112,8 +137,11 @@ class Env(gym.Env):
 		else:
 			if over == 1:
 				print('human won')
+				return [self.observation, 1000, 1, None]
 			else:
 				print('computer won')
+				return [self.observation, 0, 1, None]
+
 			return [self.observation, over*1000, 1, None]
 
 	def step(self, action):
